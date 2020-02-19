@@ -24,9 +24,10 @@ func buildMap(yaml string) (map[string]string, error) {
 		return nil, err
 	}
 
-	pathToUrl := make(map[string]string)
-	pathToUrl["path"] = config.Mappings[0].Path
-	pathToUrl["url"] = config.Mappings[0].Url
+	pathToUrl := make(map[string]string, len(config.Mappings))
+	for _, mapping := range config.Mappings {
+		pathToUrl[mapping.Path] = mapping.Url
+	}
 
 	return pathToUrl, nil
 }

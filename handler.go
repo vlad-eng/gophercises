@@ -18,7 +18,7 @@ func MapHandler(pathsToUrls map[string]string, fallback http.Handler, fallbackLo
 		sw := ServerWriter{
 			w: w,
 		}
-		if len(pathsToUrls) > 0 {
+		if len(pathsToUrls) > 0 && !CompareInsensitive(reqPath, "/") {
 			redirectionUrl := pathsToUrls[reqPath]
 			redirectHandler = http.RedirectHandler(redirectionUrl, http.StatusFound)
 			sw.location = redirectionUrl

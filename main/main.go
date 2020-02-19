@@ -2,23 +2,17 @@ package main
 
 import (
 	"fmt"
+	"gophercises/urlshort"
 	"net/http"
-	"urlshort"
 )
 
 func main() {
 	fallbackLocation := "/"
 	mux := urlshort.DefaultMux(fallbackLocation)
 
-	// Build the MapHandler using the mux as the fallback
-	pathsToUrls := map[string]string{
-		"/urlshort-godoc": "https://godoc.org/github.com/gophercises/urlshort",
-		"/yaml-godoc":     "https://godoc.org/gopkg.in/yaml.v2",
-	}
-	mapHandler := urlshort.MapHandler(pathsToUrls, mux, fallbackLocation)
-	// Build the YAMLHandler using the mapHandler as the fallback
-	yaml := "mappings:\n - path: /urlshort\n   url: https://gophercises.com/urlshort-godoc\n - path: /urlshort-final\n   url: https://github.com/gophercises/urlshort/tree/solution"
-	yamlHandler, err := urlshort.YAMLHandler([]byte(yaml), mapHandler, fallbackLocation)
+	// Build the YAMLHandler using the mux as the fallback
+	yaml := "mappings:\n - path: /urlshort\n   url: https://github.com/gophercises/urlshort\n - path: /urlshort-final\n   url: https://github.com/gophercises/urlshort/tree/solution"
+	yamlHandler, err := urlshort.YAMLHandler([]byte(yaml), mux, fallbackLocation)
 	if err != nil {
 		panic(err)
 	}
