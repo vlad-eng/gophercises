@@ -21,11 +21,11 @@ func TestUrlShortener(t *testing.T) {
 	suite.Run(t, &testSuite)
 }
 
-func createRequest() *Request {
+func createRequest(path string) *Request {
 	var req *Request
 	var err error
 	req, err = NewRequest("GET", "localhost:8088", nil)
-	req.URL.Path = "/urlshort-godoc"
+	req.URL.Path = path
 	if err != nil {
 		log.Fatal("couldn't create request due to: ", err)
 	}
@@ -34,16 +34,16 @@ func createRequest() *Request {
 }
 
 func (s *UrlShortenerTestSuite) TestMapHandler() {
-	req := createRequest()
+	req := createRequest("/urlshort")
 	writer := httptest.NewRecorder()
 	fallbackLocation := "/"
 	pathsToUrls := map[string]string{
-		"/urlshort-godoc": "https://godoc.org/github.com/gophercises/urlshort",
-		"/yaml-godoc":     "https://godoc.org/gopkg.in/yaml.v2",
+		"/urlshort":       "https://gophercises.com/urlshort-godoc",
+		"/urlshort-final": "https://github.com/gophercises/urlshort/tree/solution",
 	}
 
 	mux := DefaultMux(fallbackLocation)
-	mH := MapHandler(pathsToUrls, mux, fallbackLocation)
+	mH := MapHandler(pathsToUrls, CreateSelectionFunction(), mux, fallbackLocation)
 	mH.ServeHTTP(writer, req)
 
 	s.gomega.Expect(mH).ShouldNot(BeNil())
@@ -51,14 +51,22 @@ func (s *UrlShortenerTestSuite) TestMapHandler() {
 	s.gomega.Expect(writer.Code).Should(Equal(StatusFound))
 }
 
-func (s *UrlShortenerTestSuite) TestFallbackMuxHandler() {
-	req := createRequest()
+func (s *UrlShortenerTestSuite) Test_WhenNoMappingsFallbackIsMuxHandler() {
+	req := createRequest("/urlshort")
 	writer := httptest.NewRecorder()
 	fallbackLocation := "/"
-
 	mux := DefaultMux(fallbackLocation)
 
-	mH := MapHandler(nil, mux, fallbackLocation)
+	checkTypesSelectionFunction := func(reqPath string, pathsToUrls map[string]string, fallback Handler, fallbackLocation string) (Handler, string) {
+		s.gomega.Expect(reflect.TypeOf(fallback).String()).Should(Equal(reflect.TypeOf(&ServeMux{}).String()))
+
+		selectedHandler, redirectLocation := SelectHandler(reqPath, pathsToUrls, fallback, fallbackLocation)
+
+		s.gomega.Expect(reflect.TypeOf(selectedHandler).String()).Should(Equal(reflect.TypeOf(&ServeMux{}).String()))
+		return selectedHandler, redirectLocation
+	}
+
+	mH := MapHandler(nil, checkTypesSelectionFunction, mux, fallbackLocation)
 	mH.ServeHTTP(writer, req)
 
 	s.gomega.Expect(mH).ShouldNot(BeNil())
@@ -66,24 +74,37 @@ func (s *UrlShortenerTestSuite) TestFallbackMuxHandler() {
 	s.gomega.Expect(writer.Code).Should(Equal(StatusOK))
 }
 
+func (s UrlShortenerTestSuite) Test_WhenUnrecognizedRequestPathFallbackIsMuxHandler() {
+	req := createRequest("/some-unrecognized-path")
+	writer := httptest.NewRecorder()
+	fallbackLocation := "/"
+	mux := DefaultMux(fallbackLocation)
+
+	checkTypesSelectionFunction := func(reqPath string, pathsToUrls map[string]string, fallback Handler, fallbackLocation string) (Handler, string) {
+		s.gomega.Expect(reflect.TypeOf(fallback).String()).Should(Equal(reflect.TypeOf(&ServeMux{}).String()))
+
+		selectedHandler, redirectLocation := SelectHandler(reqPath, pathsToUrls, fallback, fallbackLocation)
+
+		s.gomega.Expect(reflect.TypeOf(selectedHandler).String()).Should(Equal(reflect.TypeOf(&ServeMux{}).String()))
+		return selectedHandler, redirectLocation
+	}
+
+	pathsToUrls := map[string]string{
+		"/urlshort":       "https://gophercises.com/urlshort-godoc",
+		"/urlshort-final": "https://github.com/gophercises/urlshort/tree/solution",
+	}
+
+	mH := MapHandler(pathsToUrls, checkTypesSelectionFunction, mux, fallbackLocation)
+	mH.ServeHTTP(writer, req)
+}
+
 func (s *UrlShortenerTestSuite) TestYamlHandler() {
 	yaml := "mappings:\n - path: /urlshort\n   url: https://gophercises.com/urlshort-godoc\n - path: /urlshort-final\n   url: https://github.com/gophercises/urlshort/tree/solution"
 	fallbackLocation := "/"
 
-	yH, err := YAMLHandler([]byte(yaml), nil, fallbackLocation)
+	yH, err := YAMLHandler([]byte(yaml), CreateSelectionFunction(), nil, fallbackLocation)
 	if err != nil {
 		log.Fatal("couldn't create the YAML handler: ", err)
 	}
 	s.gomega.Expect(yH).ShouldNot(BeNil())
-}
-
-func (s *UrlShortenerTestSuite) Test_WhenNoMappingsFallbackIsMuxHandler() {
-	var fallbackHandler *ServeMux
-	fallbackHandler = NewServeMux()
-	fallbackLocation := "/"
-	reqPath := "/somepath"
-	redirectHandler, redirectLocation := selectHandler(reqPath, nil, fallbackHandler, fallbackLocation)
-
-	s.gomega.Expect(reflect.TypeOf(redirectHandler).String()).Should(Equal(reflect.TypeOf(&ServeMux{}).String()))
-	s.gomega.Expect(redirectLocation).Should(Equal(fallbackLocation))
 }

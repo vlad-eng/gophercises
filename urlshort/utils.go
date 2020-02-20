@@ -46,10 +46,10 @@ func muxFallbackHandler(w ResponseWriter, r *Request) {
 	fmt.Fprintln(w, "Hello, world!")
 }
 
-func selectHandler(reqPath string, pathsToUrls map[string]string, fallbackHandler Handler, fallbackLocation string) (Handler, string) {
+func SelectHandler(reqPath string, pathsToUrls map[string]string, fallbackHandler Handler, fallbackLocation string) (Handler, string) {
 	var redirectHandler Handler
 	var redirectLocation string
-	if len(pathsToUrls) > 0 && !CompareInsensitive(reqPath, "/") {
+	if pathsToUrls[reqPath] != "" {
 		redirectionUrl := pathsToUrls[reqPath]
 		redirectHandler = RedirectHandler(redirectionUrl, StatusFound)
 		redirectLocation = redirectionUrl
@@ -59,4 +59,10 @@ func selectHandler(reqPath string, pathsToUrls map[string]string, fallbackHandle
 	}
 	return redirectHandler, redirectLocation
 
+}
+
+func CreateSelectionFunction() HandlerSelectionFunction {
+	return func(reqPath string, pathsToUrls map[string]string, fallback Handler, fallbackLocation string) (Handler, string) {
+		return SelectHandler(reqPath, pathsToUrls, fallback, fallbackLocation)
+	}
 }

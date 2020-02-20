@@ -2,20 +2,21 @@ package main
 
 import (
 	"fmt"
-	"gophercises/urlshort"
-	"net/http"
+	. "gophercises/urlshort"
+	. "net/http"
 )
 
 func main() {
 	fallbackLocation := "/"
-	mux := urlshort.DefaultMux(fallbackLocation)
+	mux := DefaultMux(fallbackLocation)
 
 	// Build the YAMLHandler using the mux as the fallback
-	yaml := "mappings:\n - path: /urlshort\n   url: https://github.com/gophercises/urlshort\n - path: /urlshort-final\n   url: https://github.com/gophercises/urlshort/tree/solution"
-	yamlHandler, err := urlshort.YAMLHandler([]byte(yaml), mux, fallbackLocation)
+	yaml := "mappings:\n - path: /urlshort\n   url: https://github.com/gophercises/urlshort\n - path: /urlshort-final\n   url: https://github.com/gophercises/urlshort/tree/solution\n"
+	selectionFunction := CreateSelectionFunction()
+	yamlHandler, err := YAMLHandler([]byte(yaml), selectionFunction, mux, fallbackLocation)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println("Starting the server on localhost:8088")
-	http.ListenAndServe("localhost:8088", yamlHandler)
+	ListenAndServe("localhost:8088", yamlHandler)
 }

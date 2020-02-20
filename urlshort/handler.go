@@ -4,13 +4,15 @@ import (
 	. "net/http"
 )
 
+type HandlerSelectionFunction func(string, map[string]string, Handler, string) (Handler, string)
+
 // MapHandler will return an http.HandlerFunc (which also
 // implements http.Handler) that will attempt to map any
 // paths (keys in the map) to their corresponding URL (values
 // that each key in the map points to, in string format).
 // If the path is not provided in the map, then the fallback
 // http.Handler will be called instead.
-func MapHandler(pathsToUrls map[string]string, fallback Handler, fallbackLocation string) HandlerFunc {
+func MapHandler(pathsToUrls map[string]string, selectionFunction HandlerSelectionFunction, fallback Handler, fallbackLocation string) HandlerFunc {
 	handlerFunc := func(w ResponseWriter, r *Request) {
 		reqPath := r.URL.Path
 
@@ -18,7 +20,7 @@ func MapHandler(pathsToUrls map[string]string, fallback Handler, fallbackLocatio
 			w: w,
 		}
 
-		redirectHandler, redirectLocation := selectHandler(reqPath, pathsToUrls, fallback, fallbackLocation)
+		redirectHandler, redirectLocation := selectionFunction(reqPath, pathsToUrls, fallback, fallbackLocation)
 		sw.location = redirectLocation
 		redirectHandler.ServeHTTP(sw.w, r)
 		if sw.wroteHeader == false {
@@ -45,11 +47,11 @@ func MapHandler(pathsToUrls map[string]string, fallback Handler, fallbackLocatio
 //
 // See MapHandler to create a similar http.HandlerFunc via
 // a mapping of paths to urls.
-func YAMLHandler(yaml []byte, fallback Handler, fallbackLocation string) (HandlerFunc, error) {
+func YAMLHandler(yaml []byte, selectionFunction HandlerSelectionFunction, fallback Handler, fallbackLocation string) (HandlerFunc, error) {
 	parsedYaml, err := parseYAML(yaml)
 	if err != nil {
 		return nil, err
 	}
 	pathMap, err := buildMap(parsedYaml)
-	return MapHandler(pathMap, fallback, fallbackLocation), err
+	return MapHandler(pathMap, selectionFunction, fallback, fallbackLocation), err
 }
