@@ -1,12 +1,12 @@
 package urlshort
 
 import (
-	"github.com/golang/go/src/pkg/net/http"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/suite"
 	"log"
 	. "net/http"
 	"net/http/httptest"
+	"reflect"
 	"testing"
 )
 
@@ -48,7 +48,7 @@ func (s *UrlShortenerTestSuite) TestMapHandler() {
 
 	s.gomega.Expect(mH).ShouldNot(BeNil())
 	s.gomega.Expect(writer.Header().Get("Location")).Should(Equal(pathsToUrls[req.URL.Path]))
-	s.gomega.Expect(writer.Code).Should(Equal(http.StatusFound))
+	s.gomega.Expect(writer.Code).Should(Equal(StatusFound))
 }
 
 func (s *UrlShortenerTestSuite) TestFallbackMuxHandler() {
@@ -57,12 +57,13 @@ func (s *UrlShortenerTestSuite) TestFallbackMuxHandler() {
 	fallbackLocation := "/"
 
 	mux := DefaultMux(fallbackLocation)
+
 	mH := MapHandler(nil, mux, fallbackLocation)
 	mH.ServeHTTP(writer, req)
 
 	s.gomega.Expect(mH).ShouldNot(BeNil())
 	s.gomega.Expect(writer.Header().Get("Location")).Should(Equal(fallbackLocation))
-	s.gomega.Expect(writer.Code).Should(Equal(http.StatusOK))
+	s.gomega.Expect(writer.Code).Should(Equal(StatusOK))
 }
 
 func (s *UrlShortenerTestSuite) TestYamlHandler() {
@@ -74,4 +75,15 @@ func (s *UrlShortenerTestSuite) TestYamlHandler() {
 		log.Fatal("couldn't create the YAML handler: ", err)
 	}
 	s.gomega.Expect(yH).ShouldNot(BeNil())
+}
+
+func (s *UrlShortenerTestSuite) Test_WhenNoMappingsFallbackIsMuxHandler() {
+	var fallbackHandler *ServeMux
+	fallbackHandler = NewServeMux()
+	fallbackLocation := "/"
+	reqPath := "/somepath"
+	redirectHandler, redirectLocation := selectHandler(reqPath, nil, fallbackHandler, fallbackLocation)
+
+	s.gomega.Expect(reflect.TypeOf(redirectHandler).String()).Should(Equal(reflect.TypeOf(&ServeMux{}).String()))
+	s.gomega.Expect(redirectLocation).Should(Equal(fallbackLocation))
 }

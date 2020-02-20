@@ -1,7 +1,7 @@
 package urlshort
 
 import (
-	"net/http"
+	. "net/http"
 )
 
 // MapHandler will return an http.HandlerFunc (which also
@@ -10,23 +10,16 @@ import (
 // that each key in the map points to, in string format).
 // If the path is not provided in the map, then the fallback
 // http.Handler will be called instead.
-func MapHandler(pathsToUrls map[string]string, fallback http.Handler, fallbackLocation string) http.HandlerFunc {
-	handlerFunc := func(w http.ResponseWriter, r *http.Request) {
+func MapHandler(pathsToUrls map[string]string, fallback Handler, fallbackLocation string) HandlerFunc {
+	handlerFunc := func(w ResponseWriter, r *Request) {
 		reqPath := r.URL.Path
 
-		var redirectHandler http.Handler
 		sw := ServerWriter{
 			w: w,
 		}
-		if len(pathsToUrls) > 0 && !CompareInsensitive(reqPath, "/") {
-			redirectionUrl := pathsToUrls[reqPath]
-			redirectHandler = http.RedirectHandler(redirectionUrl, http.StatusFound)
-			sw.location = redirectionUrl
-		} else {
-			redirectHandler = fallback
-			sw.location = fallbackLocation
-		}
 
+		redirectHandler, redirectLocation := selectHandler(reqPath, pathsToUrls, fallback, fallbackLocation)
+		sw.location = redirectLocation
 		redirectHandler.ServeHTTP(sw.w, r)
 		if sw.wroteHeader == false {
 			sw.w.Header().Set("Location", sw.location)
@@ -52,7 +45,7 @@ func MapHandler(pathsToUrls map[string]string, fallback http.Handler, fallbackLo
 //
 // See MapHandler to create a similar http.HandlerFunc via
 // a mapping of paths to urls.
-func YAMLHandler(yaml []byte, fallback http.Handler, fallbackLocation string) (http.HandlerFunc, error) {
+func YAMLHandler(yaml []byte, fallback Handler, fallbackLocation string) (HandlerFunc, error) {
 	parsedYaml, err := parseYAML(yaml)
 	if err != nil {
 		return nil, err

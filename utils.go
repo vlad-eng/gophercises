@@ -3,7 +3,7 @@ package urlshort
 import (
 	"fmt"
 	. "gopkg.in/yaml.v2"
-	"net/http"
+	. "net/http"
 )
 
 type YamlMapping struct {
@@ -36,12 +36,27 @@ func parseYAML(yaml []byte) (string, error) {
 	return string(yaml), nil
 }
 
-func DefaultMux(fallbackLocation string) *http.ServeMux {
-	mux := http.NewServeMux()
+func DefaultMux(fallbackLocation string) *ServeMux {
+	mux := NewServeMux()
 	mux.HandleFunc(fallbackLocation, muxFallbackHandler)
 	return mux
 }
 
-func muxFallbackHandler(w http.ResponseWriter, r *http.Request) {
+func muxFallbackHandler(w ResponseWriter, r *Request) {
 	fmt.Fprintln(w, "Hello, world!")
+}
+
+func selectHandler(reqPath string, pathsToUrls map[string]string, fallbackHandler Handler, fallbackLocation string) (Handler, string) {
+	var redirectHandler Handler
+	var redirectLocation string
+	if len(pathsToUrls) > 0 && !CompareInsensitive(reqPath, "/") {
+		redirectionUrl := pathsToUrls[reqPath]
+		redirectHandler = RedirectHandler(redirectionUrl, StatusFound)
+		redirectLocation = redirectionUrl
+	} else {
+		redirectHandler = fallbackHandler
+		redirectLocation = fallbackLocation
+	}
+	return redirectHandler, redirectLocation
+
 }
