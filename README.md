@@ -1,2 +1,1 @@
-# quiz
-Run times quizzes via the command line
+Gophercises - practicing Golang by building mini-apps.
