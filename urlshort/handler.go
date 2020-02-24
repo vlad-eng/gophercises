@@ -4,7 +4,7 @@ import (
 	. "net/http"
 )
 
-type HandlerSelectionFunction func(string, map[string]string, Handler, string) (Handler, string)
+type HandlerSelectionFunction func(string, interface{}, Handler, string) (Handler, string)
 
 // MapHandler will return an http.HandlerFunc (which also
 // implements http.Handler) that will attempt to map any
@@ -12,7 +12,7 @@ type HandlerSelectionFunction func(string, map[string]string, Handler, string) (
 // that each key in the map points to, in string format).
 // If the path is not provided in the map, then the fallback
 // http.Handler will be called instead.
-func MapHandler(pathsToUrls map[string]string, selectionFunction HandlerSelectionFunction, fallback Handler, fallbackLocation string) HandlerFunc {
+func MapHandler(dataStore interface{}, selectionFunction HandlerSelectionFunction, fallback Handler, fallbackLocation string) HandlerFunc {
 	handlerFunc := func(w ResponseWriter, r *Request) {
 		reqPath := r.URL.Path
 
@@ -20,7 +20,7 @@ func MapHandler(pathsToUrls map[string]string, selectionFunction HandlerSelectio
 			w: w,
 		}
 
-		redirectHandler, redirectLocation := selectionFunction(reqPath, pathsToUrls, fallback, fallbackLocation)
+		redirectHandler, redirectLocation := selectionFunction(reqPath, dataStore, fallback, fallbackLocation)
 		sw.location = redirectLocation
 		redirectHandler.ServeHTTP(sw.w, r)
 		if sw.wroteHeader == false {
@@ -52,6 +52,12 @@ func YAMLHandler(yaml []byte, selectionFunction HandlerSelectionFunction, fallba
 	if err != nil {
 		return nil, err
 	}
-	pathMap, err := buildMap(parsedYaml)
+	pathMap, err := buildMapFromYaml(parsedYaml)
+	return MapHandler(pathMap, selectionFunction, fallback, fallbackLocation), err
+}
+
+func DBHandler(selectionFunction HandlerSelectionFunction, fallback Handler, fallbackLocation string) (HandlerFunc, error) {
+	db := useDB("mysql", "paths")
+	pathMap, err := buildMapFromDB(db, "paths")
 	return MapHandler(pathMap, selectionFunction, fallback, fallbackLocation), err
 }
