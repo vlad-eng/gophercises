@@ -90,7 +90,6 @@ func (n *HtmlNode) extractLink() (Link, error) {
 		if len(n.Attr) > 0 {
 			return Link{Href: attributes["Key"], Text: trimmedText}, nil
 		} else {
-			fmt.Println(n)
 			return Link{}, nil
 		}
 	} else {
