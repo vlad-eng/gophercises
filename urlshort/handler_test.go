@@ -45,21 +45,29 @@ func createRequest(path string) *Request {
 */
 func createTable(driverName string, dbName string, tableName string, columns []string, testData [][]string) *DB {
 	db := useDB(driverName, dbName)
-	//var newRow *Rows
 	var err error
-	_, _ = db.Query("DROP TABLE " + tableName)
-	if _, err = db.Query("CREATE TABLE " + dbName + "." + tableName + "(id INTEGER, " + columns[0] + " VARCHAR(50), " + columns[1] + " VARCHAR(100));"); err != nil {
+	var stmt *Stmt
+	stmt, _ = db.Prepare("DROP TABLE " + tableName)
+	_, _ = stmt.Exec()
+
+	stmt, _ = db.Prepare("CREATE TABLE " + dbName + "." + tableName + "(id INTEGER, " + columns[0] + " VARCHAR(50), " + columns[1] + " VARCHAR(100));")
+	if _, err = stmt.Exec(); err != nil {
 		fmt.Println(err.Error())
 	}
 
-	//var insert *Rows
 	var testRow []string
 	var i int
+
 	if testData != nil && len(testData) > 0 {
 		for i, testRow = range testData {
-			insertCommand := "INSERT INTO " + tableName + "(id" + ", " + columns[0] + ", " + columns[1] +
-				") VALUES(" + strconv.FormatInt(int64(i+1), 10) + ", \"" + testRow[0] + "\", \"" + testRow[1] + "\")"
-			if _, err = db.Query(insertCommand); err != nil {
+			insertCommand := "INSERT INTO " + tableName + "(id" + ", " + columns[0] + ", " + columns[1] + ") VALUES(?, ?, ?)"
+			if stmt, err = db.Prepare(insertCommand); err != nil {
+				panic(err.Error())
+			}
+			index := strconv.FormatInt(int64(i+1), 10)
+			firstColValue := testRow[0]
+			secondColValue := testRow[1]
+			if _, err = stmt.Exec(index, firstColValue, secondColValue); err != nil {
 				panic(err.Error())
 			}
 		}

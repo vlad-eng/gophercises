@@ -1,20 +1,31 @@
 package sitemap
 
 import (
+	"encoding/xml"
 	"fmt"
 	"github.com/fatih/set"
 	"github.com/golang/go/src/pkg/strings"
 	. "gophercises/link/parser"
 	. "io/ioutil"
 	. "net/http"
+	"time"
 )
+
+type Url struct {
+	XMLName xml.Name `xml:url`
+	Loc     string   `xml:loc`
+}
+
+type UrlSet struct {
+	XMLName xml.Name `xml:"http://www.sitemaps.org/schemas/sitemap/0.9 Urlset"`
+	Url     []Url    `xml:url`
+}
 
 type SiteParser struct {
 }
 
 //TODO: Check declaring strings and usage in loops - multiple declarations or reassignments?
-func (s *SiteParser) Parse(domain string, doneChannel chan bool) ([]Link, error) {
-	pageLinks := make([]Link, 0)
+func (s *SiteParser) Parse(domain string, outputLinks chan Link, doneChannel chan bool) {
 	linkChannel := make(chan Link, 1000)
 	linkChannel <- Link{Href: domain, Text: ""}
 	finishedRoutinesChannel := make(chan int, 1)
@@ -25,24 +36,32 @@ func (s *SiteParser) Parse(domain string, doneChannel chan bool) ([]Link, error)
 
 	var link Link
 	var startedRoutines int
-	var finishedRoutines int
 	for {
 		select {
 		case link = <-linkChannel:
 			startedRoutines++
 			if link.Text != "" {
-				pageLinks = append(pageLinks, link)
+				outputLinks <- link
 			}
 			go processPage(domain, link.Href, visitedChannel, linkChannel, finishedRoutinesChannel)
 
-		case finishedRoutines = <-finishedRoutinesChannel:
-			finishedRoutinesChannel <- finishedRoutines
-			if startedRoutines > 200 && startedRoutines == finishedRoutines && len(linkChannel) == 0 {
-				doneChannel <- true
-				return pageLinks, nil
-			}
+		case <-time.After(10 * time.Second):
+			doneChannel <- true
 		}
 	}
+}
+
+func (s *SiteParser) Format(links []Link) string {
+	siteMap := UrlSet{
+		Url: []Url{},
+	}
+
+	for _, link := range links {
+		siteMap.Url = append(siteMap.Url, Url{Loc: link.Href})
+	}
+
+	marshalledSiteMap, _ := xml.MarshalIndent(siteMap, "", "   ")
+	return xml.Header + string(marshalledSiteMap)
 }
 
 func processPage(domain string, currentPage string, visitedChannel chan set.Interface, linkChannel chan Link, finishedRoutines chan int) {
@@ -52,9 +71,7 @@ func processPage(domain string, currentPage string, visitedChannel chan set.Inte
 	var err error
 	currentPage = strings.TrimSpace(currentPage)
 	var currentHtml string
-	if currentHtml, err = getHtml(currentPage); err != nil {
-		panic(fmt.Errorf("%s", err))
-	}
+	currentHtml, _ = getHtml(currentPage)
 
 	childrenLinks := make([]Link, 0)
 	if childrenLinks, err = getInternalLinks(domain, currentHtml); err != nil {
@@ -94,8 +111,7 @@ func getHtml(url string) (string, error) {
 	var response *Response
 	var err error
 	if response, err = Get(url); err != nil {
-		//return "", fmt.Errorf("couldn't fetch page at url %s due to: %s", url, err)
-		panic(fmt.Errorf("couldn't fetch page at url %s due to: %s", url, err))
+		return "", fmt.Errorf("couldn't fetch page at url %s due to: %s", url, err)
 	}
 	defer response.Body.Close()
 
