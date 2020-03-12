@@ -40,31 +40,47 @@ func (p *PageParser) Parse(htmlString string) ([]Link, error) {
 //as a leaf node and returns an array with all these nodes
 func (n *HtmlNode) traverse() []HtmlNode {
 	linkNodes := make([]HtmlNode, 0)
-	currentNode := n
+	addedNodes := make([]HtmlNode, 0)
+	if !n.isLeafNode() {
+		addedNodes = n.visitFirstChild()
+		linkNodes = appendAllNodes(linkNodes, addedNodes)
 
-	if !currentNode.isLeafNode() {
-		firstChildHtmlNode := HtmlNode(*currentNode.FirstChild)
-		downStreamNodes := firstChildHtmlNode.traverse()
-		for _, downStreamNode := range downStreamNodes {
-			linkNodes = append(linkNodes, downStreamNode)
-		}
-		if currentNode.NextSibling != nil {
-			nextSiblingHtmlNode := HtmlNode(*currentNode.NextSibling)
-			siblingNodes := nextSiblingHtmlNode.traverse()
-			for _, siblingNode := range siblingNodes {
-				linkNodes = append(linkNodes, siblingNode)
-			}
-		}
+		addedNodes = n.visitSiblings()
+		linkNodes = appendAllNodes(linkNodes, addedNodes)
 	} else {
-		if currentNode.isLinkNode() {
-			linkNodes = append(linkNodes, *currentNode)
+		if n.isLinkNode() {
+			linkNodes = append(linkNodes, *n)
 		}
-		if currentNode.NextSibling != nil {
-			nextSiblingHtmlNode := HtmlNode(*currentNode.NextSibling)
-			siblingNodes := nextSiblingHtmlNode.traverse()
-			for _, siblingNode := range siblingNodes {
-				linkNodes = append(linkNodes, siblingNode)
-			}
+		addedNodes = n.visitSiblings()
+		linkNodes = appendAllNodes(linkNodes, addedNodes)
+	}
+	return linkNodes
+}
+
+func appendAllNodes(nodes []HtmlNode, toBeAddedNodes []HtmlNode) []HtmlNode {
+	for _, node := range toBeAddedNodes {
+		nodes = append(nodes, node)
+	}
+	return nodes
+}
+
+func (n *HtmlNode) visitFirstChild() []HtmlNode {
+	linkNodes := make([]HtmlNode, 0)
+	firstChildHtmlNode := HtmlNode(*n.FirstChild)
+	downStreamNodes := firstChildHtmlNode.traverse()
+	for _, downStreamNode := range downStreamNodes {
+		linkNodes = append(linkNodes, downStreamNode)
+	}
+	return linkNodes
+}
+
+func (n *HtmlNode) visitSiblings() []HtmlNode {
+	linkNodes := make([]HtmlNode, 0)
+	if n.NextSibling != nil {
+		nextSiblingHtmlNode := HtmlNode(*n.NextSibling)
+		siblingNodes := nextSiblingHtmlNode.traverse()
+		for _, siblingNode := range siblingNodes {
+			linkNodes = append(linkNodes, siblingNode)
 		}
 	}
 	return linkNodes

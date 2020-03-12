@@ -27,5 +27,4 @@ func main() {
 			fmt.Printf("Link: %s\n", link)
 		}
 	}
-
 }
