@@ -20,7 +20,7 @@ func XmlEncode(links []string) string {
 	return xml.Header + string(marshalledSiteMap)
 }
 
-func InitSiteMap(domain string) SiteParser {
+func InitSiteParser(domain string) SiteParser {
 	siteMap := SiteParser{
 		Domain:             domain,
 		ToBeProcessedLinks: make(chan string, 1),

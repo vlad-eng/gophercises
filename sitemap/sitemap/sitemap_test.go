@@ -22,14 +22,14 @@ func Test_SiteParserTests(t *testing.T) {
 
 func (s *SiteParserTestSuite) Test_ExtractsOnlyDomainLinks() {
 	domain := "http://www.wikipedia.org"
-	s.unit = InitSiteMap(domain)
+	s.unit = InitSiteParser(domain)
 	links := s.unit.Parse()
 	s.gomega.Expect(len(links)).ShouldNot(Equal(0))
 }
 
 func (s *SiteParserTestSuite) Test_ExtractLinksInChildPages() {
 	domain := "http://www.thesmallthingsblog.com"
-	s.unit = InitSiteMap(domain)
+	s.unit = InitSiteParser(domain)
 	links := s.unit.Parse()
 	found := false
 	pageUrl := "http://www.thesmallthingsblog.com/shop/the-master-list/"
@@ -43,7 +43,7 @@ func (s *SiteParserTestSuite) Test_ExtractLinksInChildPages() {
 
 func (s *SiteParserTestSuite) Test_FormatProducesExpectedXml() {
 	domain := "http://www.thesmallthingsblog.com"
-	s.unit = InitSiteMap(domain)
+	s.unit = InitSiteParser(domain)
 	links := s.unit.Parse()
 
 	expectedSiteMap := UrlSet{

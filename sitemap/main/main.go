@@ -7,10 +7,10 @@ import (
 )
 
 func main() {
-	domainPtr := flag.String("domain", "http://www.wikipedia.org", "Domain to be searched")
+	domainPtr := flag.String("url", "http://www.wikipedia.org", "The URL you want to build a sitemap for")
 	flag.Parse()
 
-	siteParser := InitSiteMap(*domainPtr)
+	siteParser := InitSiteParser(*domainPtr)
 	links := siteParser.Parse()
 	fmt.Println(XmlEncode(links))
 }
