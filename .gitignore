@@ -17,3 +17,8 @@
 *.iml
 *.xml
 *.name
+.idea
+
+# OS generated files
+######################
+.DS_Store
