@@ -125,13 +125,15 @@ func withJokers(numOfJokers int) func([]Card) []Card {
 	return addJokers
 }
 
-func withoutCards(cards []Card) func([]Card) []Card {
+func withoutCards(cardValues []CardValue) func([]Card) []Card {
 	removeCards := func(d []Card) []Card {
-		for i, card := range cards {
-			val := (i * 13) + (int(card.value) - 1 - i)
-			d = append(d[:val], d[val+1:]...)
+		deck := make([]Card, 0)
+		for _, checkedCard := range d {
+			if containsCard(cardValues, checkedCard.value) == false {
+				deck = append(deck, checkedCard)
+			}
 		}
-		return d
+		return deck
 	}
 	return removeCards
 }
@@ -158,10 +160,61 @@ func withShuffling() func([]Card) []Card {
 	return shuffleFunc
 }
 
-func withSorting() func([]Card) []Card {
-	sortFunc := func(deck []Card) []Card {
-		sort.Sort(ByTypeAndValue(deck))
+func withSorting(comparisonFuncs ...func(int, int) bool) func([]Card) []Card {
+	var sortFunc func([]Card) []Card
+
+	if len(comparisonFuncs) == 0 {
+		sortFunc = func(deck []Card) []Card {
+			sort.Sort(ByTypeAndValue(deck))
+			return deck
+		}
+		return sortFunc
+
+	}
+
+	sortFunc = func(deck []Card) []Card {
+		comparatorFunc := comparisonFuncs[0]
+		sort.Slice(deck, comparatorFunc)
 		return deck
 	}
+
 	return sortFunc
+}
+
+func add(firstValue, lastValue CardValue, types []CardType) []Card {
+	deck := make([]Card, 0)
+	for _, cType := range types {
+		for value := firstValue; value <= lastValue; value++ {
+			deck = append(deck, Card{cType: cType, value: value})
+		}
+	}
+	return deck
+}
+
+func containsCard(s []CardValue, e CardValue) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
+}
+
+func getAllCardValues() []CardValue {
+	values := []CardValue{
+		Ace,
+		Two,
+		Three,
+		Four,
+		Five,
+		Six,
+		Seven,
+		Eight,
+		Nine,
+		Ten,
+		Knight,
+		Queen,
+		King,
+	}
+	return values
 }
