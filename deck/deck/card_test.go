@@ -1,6 +1,7 @@
 package deck
 
 import (
+	"fmt"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/suite"
 	"testing"
@@ -13,10 +14,6 @@ type CardDeckTestSuite struct {
 }
 
 func Test_CardSuitTestSuite(t *testing.T) {
-	var CardsOfThree []Card
-	for cType := Spades; cType <= Hearts; cType++ {
-		CardsOfThree = append(CardsOfThree, Card{Three, cType})
-	}
 	deck := New(withJokers(1))
 	testSuite := CardDeckTestSuite{unit: deck, gomega: NewGomegaWithT(t)}
 	suite.Run(t, &testSuite)
@@ -46,15 +43,29 @@ func (s *CardDeckTestSuite) Test_AllCardsWithValueOfThreeAreRemoved() {
 	}
 	withoutCardsFunc := withoutCards(CardsOfThree)
 	s.unit = withoutCardsFunc(s.unit)
+	fmt.Println(s.unit)
 	s.gomega.Expect(s.unit).Should(ContainElements(CardsOfTwo))
 	s.gomega.Expect(s.unit).ShouldNot(ContainElements(CardsOfThree))
 
 	withCardsFunc := withCards(CardsOfThree)
 	s.unit = withCardsFunc(s.unit)
+	withSortFunc := withSorting()
+	s.unit = withSortFunc(s.unit)
+
 }
 
 func (s *CardDeckTestSuite) Test_DeckIsShuffled() {
 	shuffledDeck := New(withJokers(1), withShuffling())
 	s.gomega.Expect(s.unit).ShouldNot(Equal(shuffledDeck))
 	s.gomega.Expect(len(s.unit)).Should(Equal(len(shuffledDeck)))
+}
+
+func (s *CardDeckTestSuite) Test_DeckIsSortedAfterShuffle() {
+	shuffledDeck := New(withJokers(1), withShuffling())
+	s.gomega.Expect(s.unit).ShouldNot(Equal(shuffledDeck))
+	sortFunc := withSorting()
+	sortedDeck := sortFunc(shuffledDeck)
+
+	s.gomega.Expect(s.unit).Should(Equal(sortedDeck))
+
 }

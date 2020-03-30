@@ -3,12 +3,32 @@ package deck
 import (
 	"fmt"
 	"math/rand"
+	"sort"
 	"strings"
 	"time"
 )
 
 type CardValue int
 type CardType int
+type ByTypeAndValue []Card
+
+func (t ByTypeAndValue) Len() int      { return len(t) }
+func (t ByTypeAndValue) Swap(i, j int) { t[i], t[j] = t[j], t[i] }
+func (t ByTypeAndValue) Less(i, j int) bool {
+	if t[i].cType == 0 {
+		return false
+	}
+	if t[j].cType == 0 {
+		return true
+	}
+	if t[i].cType < t[j].cType {
+		return true
+	}
+	if t[i].cType > t[j].cType {
+		return false
+	}
+	return t[i].value < t[j].value
+}
 
 const (
 	Joker CardValue = iota
@@ -108,7 +128,7 @@ func withJokers(numOfJokers int) func([]Card) []Card {
 func withoutCards(cards []Card) func([]Card) []Card {
 	removeCards := func(d []Card) []Card {
 		for i, card := range cards {
-			val := (i * 13) + (int(card.value) - 1)
+			val := (i * 13) + (int(card.value) - 1 - i)
 			d = append(d[:val], d[val+1:]...)
 		}
 		return d
@@ -136,4 +156,12 @@ func withShuffling() func([]Card) []Card {
 		return deck
 	}
 	return shuffleFunc
+}
+
+func withSorting() func([]Card) []Card {
+	sortFunc := func(deck []Card) []Card {
+		sort.Sort(ByTypeAndValue(deck))
+		return deck
+	}
+	return sortFunc
 }
