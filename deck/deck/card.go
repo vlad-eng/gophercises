@@ -2,7 +2,9 @@ package deck
 
 import (
 	"fmt"
+	"math/rand"
 	"strings"
+	"time"
 )
 
 type CardValue int
@@ -91,6 +93,7 @@ func New(options ...func([]Card) []Card) []Card {
 	}
 	return deck
 }
+
 func withJokers(numOfJokers int) func([]Card) []Card {
 	addJokers := func(d []Card) []Card {
 		jokerCard := Card{value: Joker}
@@ -111,4 +114,26 @@ func withoutCards(cards []Card) func([]Card) []Card {
 		return d
 	}
 	return removeCards
+}
+
+func withCards(cards []Card) func([]Card) []Card {
+	addedCards := func(d []Card) []Card {
+		for _, card := range cards {
+			d = append(d, card)
+		}
+		return d
+	}
+	return addedCards
+}
+
+func withShuffling() func([]Card) []Card {
+	shuffleFunc := func(deck []Card) []Card {
+		r := rand.New(rand.NewSource(time.Now().Unix()))
+		for n := len(deck); n > 1; n-- {
+			randIndex := r.Intn(n)
+			deck[randIndex], deck[n-1] = deck[n-1], deck[randIndex]
+		}
+		return deck
+	}
+	return shuffleFunc
 }
