@@ -94,3 +94,10 @@ func (s *CardDeckTestSuite) Test_DeckIsSortedWithCustomFunction() {
 	s.unit = New(withJokers(1))
 }
 
+func (s *CardDeckTestSuite) Test_ConstructDeckWithThreeStandardDecks() {
+	s.unit = New(withMultipleStandardDecks(3))
+	s.gomega.Expect(len(s.unit)).Should(Equal(STANDARD_DECK_LENGTH * 3))
+	s.gomega.Expect(s.unit[0:STANDARD_DECK_LENGTH]).Should(Equal(s.unit[STANDARD_DECK_LENGTH : STANDARD_DECK_LENGTH*2]))
+	s.gomega.Expect(s.unit[0:STANDARD_DECK_LENGTH]).Should(Equal(s.unit[STANDARD_DECK_LENGTH*2 : STANDARD_DECK_LENGTH*3]))
+	s.unit = New(withJokers(1))
+}

@@ -8,6 +8,8 @@ import (
 	"time"
 )
 
+const STANDARD_DECK_LENGTH = 52
+
 type CardValue int
 type CardType int
 type ByTypeAndValue []Card
@@ -179,6 +181,17 @@ func withSorting(comparisonFuncs ...func(int, int) bool) func([]Card) []Card {
 	}
 
 	return sortFunc
+}
+
+func withMultipleStandardDecks(deckCount int) func([]Card) []Card {
+	multipleDecksFunc := func(standardDeck []Card) []Card {
+		multipleDecks := make([]Card, 0)
+		for i := 1; i <= deckCount; i++ {
+			multipleDecks = append(multipleDecks, standardDeck...)
+		}
+		return multipleDecks
+	}
+	return multipleDecksFunc
 }
 
 func add(firstValue, lastValue CardValue, types []CardType) []Card {
