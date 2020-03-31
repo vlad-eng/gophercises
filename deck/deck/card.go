@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-const STANDARD_DECK_LENGTH = 52
+const StandardDeckLength = 52
 
 type CardValue int
 type CardType int
@@ -131,7 +131,7 @@ func withoutCards(cardValues []CardValue) func([]Card) []Card {
 	removeCards := func(d []Card) []Card {
 		deck := make([]Card, 0)
 		for _, checkedCard := range d {
-			if containsCard(cardValues, checkedCard.value) == false {
+			if contains(cardValues, checkedCard.value) == false {
 				deck = append(deck, checkedCard)
 			}
 		}
@@ -194,7 +194,7 @@ func withMultipleStandardDecks(deckCount int) func([]Card) []Card {
 	return multipleDecksFunc
 }
 
-func add(firstValue, lastValue CardValue, types []CardType) []Card {
+func create(firstValue, lastValue CardValue, types []CardType) []Card {
 	deck := make([]Card, 0)
 	for _, cType := range types {
 		for value := firstValue; value <= lastValue; value++ {
@@ -204,7 +204,7 @@ func add(firstValue, lastValue CardValue, types []CardType) []Card {
 	return deck
 }
 
-func containsCard(s []CardValue, e CardValue) bool {
+func contains(s []CardValue, e CardValue) bool {
 	for _, a := range s {
 		if a == e {
 			return true

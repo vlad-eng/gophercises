@@ -65,7 +65,7 @@ func (s *CardDeckTestSuite) Test_DeckIsSortedWithCustomFunction() {
 		Diamonds,
 		Spades,
 	}
-	sortedDeck := add(Nine, Knight, cardTypes)
+	sortedDeck := create(Nine, Knight, cardTypes)
 	values := getAllCardValues()
 	removedValues := make([]CardValue, 0)
 	removedValues = append(removedValues, values[0:8]...)
@@ -96,8 +96,8 @@ func (s *CardDeckTestSuite) Test_DeckIsSortedWithCustomFunction() {
 
 func (s *CardDeckTestSuite) Test_ConstructDeckWithThreeStandardDecks() {
 	s.unit = New(withMultipleStandardDecks(3))
-	s.gomega.Expect(len(s.unit)).Should(Equal(STANDARD_DECK_LENGTH * 3))
-	s.gomega.Expect(s.unit[0:STANDARD_DECK_LENGTH]).Should(Equal(s.unit[STANDARD_DECK_LENGTH : STANDARD_DECK_LENGTH*2]))
-	s.gomega.Expect(s.unit[0:STANDARD_DECK_LENGTH]).Should(Equal(s.unit[STANDARD_DECK_LENGTH*2 : STANDARD_DECK_LENGTH*3]))
+	s.gomega.Expect(len(s.unit)).Should(Equal(StandardDeckLength * 3))
+	s.gomega.Expect(s.unit[0:StandardDeckLength]).Should(Equal(s.unit[StandardDeckLength : StandardDeckLength*2]))
+	s.gomega.Expect(s.unit[0:StandardDeckLength]).Should(Equal(s.unit[StandardDeckLength*2 : StandardDeckLength*3]))
 	s.unit = New(withJokers(1))
 }
