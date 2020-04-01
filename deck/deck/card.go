@@ -116,7 +116,7 @@ func New(options ...func([]Card) []Card) []Card {
 	return deck
 }
 
-func withJokers(numOfJokers int) func([]Card) []Card {
+func WithJokers(numOfJokers int) func([]Card) []Card {
 	addJokers := func(d []Card) []Card {
 		jokerCard := Card{value: Joker}
 		for j := 0; j < numOfJokers; j++ {
@@ -127,11 +127,11 @@ func withJokers(numOfJokers int) func([]Card) []Card {
 	return addJokers
 }
 
-func withoutCards(cardValues []CardValue) func([]Card) []Card {
+func WithoutCards(cardValues []CardValue) func([]Card) []Card {
 	removeCards := func(d []Card) []Card {
 		deck := make([]Card, 0)
 		for _, checkedCard := range d {
-			if contains(cardValues, checkedCard.value) == false {
+			if Contains(cardValues, checkedCard.value) == false {
 				deck = append(deck, checkedCard)
 			}
 		}
@@ -140,7 +140,7 @@ func withoutCards(cardValues []CardValue) func([]Card) []Card {
 	return removeCards
 }
 
-func withCards(cards []Card) func([]Card) []Card {
+func WithCards(cards []Card) func([]Card) []Card {
 	addedCards := func(d []Card) []Card {
 		for _, card := range cards {
 			d = append(d, card)
@@ -150,7 +150,7 @@ func withCards(cards []Card) func([]Card) []Card {
 	return addedCards
 }
 
-func withShuffling() func([]Card) []Card {
+func WithShuffling() func([]Card) []Card {
 	shuffleFunc := func(deck []Card) []Card {
 		r := rand.New(rand.NewSource(time.Now().Unix()))
 		for n := len(deck); n > 1; n-- {
@@ -162,7 +162,7 @@ func withShuffling() func([]Card) []Card {
 	return shuffleFunc
 }
 
-func withSorting(comparisonFuncs ...func(int, int) bool) func([]Card) []Card {
+func WithSorting(comparisonFuncs ...func(int, int) bool) func([]Card) []Card {
 	var sortFunc func([]Card) []Card
 
 	if len(comparisonFuncs) == 0 {
@@ -183,7 +183,7 @@ func withSorting(comparisonFuncs ...func(int, int) bool) func([]Card) []Card {
 	return sortFunc
 }
 
-func withMultipleStandardDecks(deckCount int) func([]Card) []Card {
+func WithMultipleStandardDecks(deckCount int) func([]Card) []Card {
 	multipleDecksFunc := func(standardDeck []Card) []Card {
 		multipleDecks := make([]Card, 0)
 		for i := 1; i <= deckCount; i++ {
@@ -194,7 +194,7 @@ func withMultipleStandardDecks(deckCount int) func([]Card) []Card {
 	return multipleDecksFunc
 }
 
-func create(firstValue, lastValue CardValue, types []CardType) []Card {
+func Create(firstValue, lastValue CardValue, types []CardType) []Card {
 	deck := make([]Card, 0)
 	for _, cType := range types {
 		for value := firstValue; value <= lastValue; value++ {
@@ -204,7 +204,35 @@ func create(firstValue, lastValue CardValue, types []CardType) []Card {
 	return deck
 }
 
-func contains(s []CardValue, e CardValue) bool {
+func Add(deck []Card, card Card) []Card {
+	deck = append(deck, card)
+	return deck
+}
+
+func RemoveLast(deck []Card) ([]Card, Card, error) {
+	if len(deck) > 0 {
+		deck = deck[:len(deck) - 1]
+		removedCard := deck[len(deck) - 1]
+		//
+		//removedCard := (*deck)[len(*deck) - 1]
+		//deckWithoutLastCard := (*deck)[:len(*deck) - 1]
+		//deck = &deckWithoutLastCard
+		return deck, removedCard, nil
+	}
+	//if len(*deck) > 0 {
+	//	//is this necessary in order to update the game deck?
+	//	removedCard := (*deck)[len(*deck)-1]
+	//	newDeck := make([]Card, len(*deck)-1)
+	//	newDeck = (*deck)[:len(*deck)-1]
+	//	deck = &newDeck
+	//
+	//	return removedCard, nil
+	//}
+
+	return deck, Card{}, fmt.Errorf("no cards left in deck")
+}
+
+func Contains(s []CardValue, e CardValue) bool {
 	for _, a := range s {
 		if a == e {
 			return true
