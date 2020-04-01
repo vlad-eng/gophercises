@@ -21,20 +21,18 @@ func Test_BlackjackTestSuite(t *testing.T) {
 }
 
 func (s *BlackjackTestSuite) Test_FirstPlayerIsDealt() {
-	fmt.Println("first test")
-	game := BlackJack{}
 	dealer := Player{
 		id:    1234,
 		name:  "Dealer_1",
-		cards: make([]Card, 0),
+		cards: []Card{},
 	}
 
-	game.addDealer(dealer)
+	s.unit.addDealer(dealer)
 	player := Player{
-		cards: make([]Card, 0),
+		cards: []Card{},
 	}
-	game.addPlayer(player)
-	game.dealCards()
-	firstBlackJackPlayer := game.getFirstPlayer()
+	s.unit.addPlayer(player)
+	s.unit.dealCards()
+	firstBlackJackPlayer := s.unit.getFirstPlayer()
 	s.gomega.Expect(firstBlackJackPlayer.isDealt()).Should(BeTrue())
 }
