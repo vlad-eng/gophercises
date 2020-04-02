@@ -13,7 +13,7 @@ type CardDeckTestSuite struct {
 }
 
 func Test_CardSuitTestSuite(t *testing.T) {
-	deck := New(withJokers(1))
+	deck := New(WithJokers(1))
 	testSuite := CardDeckTestSuite{unit: deck, gomega: NewGomegaWithT(t)}
 	suite.Run(t, &testSuite)
 }
@@ -27,33 +27,33 @@ func (s *CardDeckTestSuite) Test_NamesOfCardsCorrectlyReturned() {
 func (s *CardDeckTestSuite) Test_AllCardsWithValueOfThreeAreRemoved() {
 	var CardsOfTwo []Card
 	for cType := Spades; cType <= Hearts; cType++ {
-		CardsOfTwo = append(CardsOfTwo, Card{Two, cType})
+		CardsOfTwo = append(CardsOfTwo, Card{Two, cType, false})
 	}
 	var CardsOfThree []Card
 	for cType := Spades; cType <= Hearts; cType++ {
-		CardsOfThree = append(CardsOfThree, Card{Three, cType})
+		CardsOfThree = append(CardsOfThree, Card{Three, cType, false})
 	}
-	withoutCardsFunc := withoutCards([]CardValue{Three})
+	withoutCardsFunc := WithoutCards([]CardValue{Three})
 	s.unit = withoutCardsFunc(s.unit)
 	s.gomega.Expect(s.unit).Should(ContainElements(CardsOfTwo))
 	s.gomega.Expect(s.unit).ShouldNot(ContainElements(CardsOfThree))
 
-	withCardsFunc := withCards(CardsOfThree)
+	withCardsFunc := WithCards(CardsOfThree)
 	s.unit = withCardsFunc(s.unit)
-	withSortFunc := withSorting()
+	withSortFunc := WithSorting()
 	s.unit = withSortFunc(s.unit)
 }
 
 func (s *CardDeckTestSuite) Test_DeckIsShuffled() {
-	shuffledDeck := New(withJokers(1), withShuffling())
+	shuffledDeck := New(WithJokers(1), WithShuffling())
 	s.gomega.Expect(s.unit).ShouldNot(Equal(shuffledDeck))
 	s.gomega.Expect(len(s.unit)).Should(Equal(len(shuffledDeck)))
 }
 
 func (s *CardDeckTestSuite) Test_DeckIsSortedAfterShuffle() {
-	shuffledDeck := New(withJokers(1), withShuffling())
+	shuffledDeck := New(WithJokers(1), WithShuffling())
 	s.gomega.Expect(s.unit).ShouldNot(Equal(shuffledDeck))
-	sortFunc := withSorting()
+	sortFunc := WithSorting()
 	sortedDeck := sortFunc(shuffledDeck)
 	s.gomega.Expect(s.unit).Should(Equal(sortedDeck))
 }
@@ -65,13 +65,13 @@ func (s *CardDeckTestSuite) Test_DeckIsSortedWithCustomFunction() {
 		Diamonds,
 		Spades,
 	}
-	sortedDeck := create(Nine, Knight, cardTypes)
+	sortedDeck := Create(Nine, Knight, cardTypes)
 	values := getAllCardValues()
 	removedValues := make([]CardValue, 0)
 	removedValues = append(removedValues, values[0:8]...)
 	removedValues = append(removedValues, values[11:]...)
 	removedValues = append(removedValues, Joker)
-	removalFunc := withoutCards(removedValues)
+	removalFunc := WithoutCards(removedValues)
 	s.unit = removalFunc(s.unit)
 	less := func(i, j int) bool {
 		if s.unit[i].cType == 0 {
@@ -88,16 +88,16 @@ func (s *CardDeckTestSuite) Test_DeckIsSortedWithCustomFunction() {
 		}
 		return s.unit[i].value < s.unit[j].value
 	}
-	sortFunc := withSorting(less)
+	sortFunc := WithSorting(less)
 	s.unit = sortFunc(s.unit)
 	s.gomega.Expect(s.unit).Should(Equal(sortedDeck))
-	s.unit = New(withJokers(1))
+	s.unit = New(WithJokers(1))
 }
 
 func (s *CardDeckTestSuite) Test_ConstructDeckWithThreeStandardDecks() {
-	s.unit = New(withMultipleStandardDecks(3))
+	s.unit = New(WithMultipleStandardDecks(3))
 	s.gomega.Expect(len(s.unit)).Should(Equal(StandardDeckLength * 3))
 	s.gomega.Expect(s.unit[0:StandardDeckLength]).Should(Equal(s.unit[StandardDeckLength : StandardDeckLength*2]))
 	s.gomega.Expect(s.unit[0:StandardDeckLength]).Should(Equal(s.unit[StandardDeckLength*2 : StandardDeckLength*3]))
-	s.unit = New(withJokers(1))
+	s.unit = New(WithJokers(1))
 }
