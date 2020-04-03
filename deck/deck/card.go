@@ -75,6 +75,10 @@ func (c *Card) IsVisible() bool {
 	return c.isVisible
 }
 
+func (c *Card) GetValue() CardValue {
+	return c.value
+}
+
 func getAllCardValues() []CardValue {
 	values := []CardValue{
 		Ace,

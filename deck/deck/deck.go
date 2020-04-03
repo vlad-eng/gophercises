@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"math/rand"
 	"sort"
-	"strings"
 	"time"
 )
 
@@ -31,8 +30,8 @@ func (t ByTypeAndValue) Less(i, j int) bool {
 }
 
 func (c *Card) String() string {
-	name := fmt.Sprintf("%sOf%s", c.value.String(), c.cType.String())
-	name = strings.TrimSuffix(name, "Of")
+	name := fmt.Sprintf("%s Of %s", c.value.String(), c.cType.String())
+	//name = strings.TrimSuffix(name, "Of")
 	return name
 }
 

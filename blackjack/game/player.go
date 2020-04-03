@@ -1,6 +1,8 @@
 package game
 
-import . "gophercises/deck/deck"
+import (
+	. "gophercises/deck/deck"
+)
 
 type ParticipantType int
 
@@ -10,11 +12,19 @@ const (
 )
 
 type Player struct {
-	id          int
-	name        string
-	cards       []Card
-	pType       ParticipantType
-	currentGame *CardGame
+	Id    int
+	Name  string
+	cards []Card
+	PType ParticipantType
+	Game  *CardGame
+	Score int
+}
+
+func (p *Player) String() string {
+	return p.Name
+}
+func (p *Player) SetScore(score int) {
+	p.Score = score
 }
 
 func (g *CardGame) getFirstPlayer() Player {
