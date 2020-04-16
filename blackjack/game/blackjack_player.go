@@ -94,18 +94,27 @@ func (p *BlackJackPlayer) String() string {
 }
 
 func (p *BlackJackPlayer) ComputeScore() {
-	var score int
 	game := BlackJack(*p.Game)
 	for _, card := range p.cards {
 		cardScore := game.GetCardScore(card)
-		score += cardScore
+		p.Score += cardScore
 	}
-	p.Score = score
+	hasAce, _ := p.hasOneAce()
+	if hasAce {
+		p.Score += 10
+	}
 }
 
 func (p *BlackJackPlayer) UpdateScore(card Card) {
 	game := BlackJack(*p.Game)
 	p.Score += game.GetCardScore(card)
+	hasDealtAce, hasHitAce := p.hasOneAce()
+	if hasDealtAce && p.Score > BlackJackMaxScore {
+		p.Score -= 10
+	}
+	if hasHitAce && p.Score <= BlackJackMaxScore-10 {
+		p.Score += 10
+	}
 }
 
 func (p *BlackJackPlayer) getCardVisibility() []bool {
@@ -116,4 +125,31 @@ func (p *BlackJackPlayer) getCardVisibility() []bool {
 		cardsVisibility = []bool{true, false}
 	}
 	return cardsVisibility
+}
+
+//Returns a boolean tuple, if it has one ace for dealt cards
+//and if it has one ace for hit cards
+func (p *BlackJackPlayer) hasOneAce() (bool, bool) {
+	dealtAcesCount := 0
+	hitAcesCount := 0
+	for i, card := range p.cards {
+		value := card.GetValue()
+		if i < 2 && value == 1 {
+			dealtAcesCount++
+		} else if value == 1 {
+			hitAcesCount++
+		}
+	}
+
+	hasDealtAce := false
+	if dealtAcesCount == 1 {
+		hasDealtAce = true
+	}
+
+	hasHitAce := false
+	if hitAcesCount == 1 {
+		hasHitAce = true
+	}
+
+	return hasDealtAce, hasHitAce
 }

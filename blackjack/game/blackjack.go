@@ -93,7 +93,7 @@ func (g *BlackJack) EarlyWinner() (BlackJackPlayer, error) {
 
 func (g *BlackJack) EndOfTurnWinner() (BlackJackPlayer, error) {
 	scores, maxScore := g.computeScores()
-	if maxScore == BlackJackMaxScore && g.dealer.Score == BlackJackMaxScore {
+	if maxScore == g.dealer.Score && maxScore <= BlackJackMaxScore {
 		return BlackJackPlayer{}, fmt.Errorf("push: no winner")
 	}
 	if (maxScore < g.dealer.Score && (g.dealer.Score <= BlackJackMaxScore)) ||
