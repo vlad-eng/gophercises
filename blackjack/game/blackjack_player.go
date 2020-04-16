@@ -153,3 +153,11 @@ func (p *BlackJackPlayer) hasOneAce() (bool, bool) {
 
 	return hasDealtAce, hasHitAce
 }
+
+func (p *BlackJackPlayer) UpdateAmount(gainedAmount int) {
+	p.Amount += gainedAmount
+}
+
+func (p *BlackJackPlayer) DisplayAmount() {
+	fmt.Printf("%s current amount: %d\n", p.Name, p.Amount)
+}
