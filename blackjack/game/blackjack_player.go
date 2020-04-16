@@ -1,8 +1,10 @@
 package game
 
 import (
+	"bufio"
 	"fmt"
 	. "gophercises/deck/deck"
+	"os"
 	"strings"
 )
 
@@ -39,31 +41,30 @@ func (p *BlackJackPlayer) dealCard(isVisible bool) (Card, error) {
 }
 
 func (p *BlackJackPlayer) ExecuteTurn() error {
-	//scanner := bufio.NewScanner(os.Stdin)
+	scanner := bufio.NewScanner(os.Stdin)
 	if p.PType == PlayerType {
 		fmt.Println()
 		fmt.Print(p.Name + ": Hit or Stand: ")
-		//scanner.Scan()
+		scanner.Scan()
 		fmt.Println()
 		var hitCard Card
 		var err error
-		//answer := scanner.Text()
-		answer := "H"
+		answer := scanner.Text()
+		//answer := "H"
 		toHit := strings.Compare(answer, "H")
 		if toHit == 0 {
 			if hitCard, err = p.dealCard(true); err != nil {
 				return err
 			}
 			p.cards = Add(p.cards, hitCard)
+			p.UpdateScore(hitCard)
 		}
 		p.DisplayCards()
-		p.ComputeScore()
 	} else {
 		//TODO: dealer's turn
 		//first version below:
 		p.cards[1].SetVisible(true)
 		p.DisplayCards()
-		p.ComputeScore()
 	}
 	return nil
 }
@@ -89,6 +90,11 @@ func (p *BlackJackPlayer) ComputeScore() {
 		score += cardScore
 	}
 	p.Score = score
+}
+
+func (p *BlackJackPlayer) UpdateScore(card Card) {
+	game := BlackJack(*p.Game)
+	p.Score += game.GetCardScore(card)
 }
 
 func (p *BlackJackPlayer) getCardVisibility() []bool {

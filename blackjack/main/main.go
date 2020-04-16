@@ -1,9 +1,12 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	. "gophercises/blackjack/game"
 	. "gophercises/deck/deck"
+	"os"
+	"strconv"
 )
 
 func main() {
@@ -25,44 +28,50 @@ func main() {
 	game.AddPlayer(player)
 
 	fmt.Println("How many times would you like to play? ")
-	//scanner := bufio.NewScanner(os.Stdin)
-	//scanner.Scan()
-	//playCount, _ := strconv.Atoi(scanner.Text())
-	for i := 0; i < 2; i++ {
+	scanner := bufio.NewScanner(os.Stdin)
+	scanner.Scan()
+	playCount, _ := strconv.Atoi(scanner.Text())
+	for i := 0; i < playCount; i++ {
 		game.DealCards()
-		players := game.GetPlayers()
-		for _, player := range players {
+		playersBeforeTurn := make([]BlackJackPlayer, 0)
+		for _, player := range game.GetPlayers() {
 			fmt.Printf("Player: %s\n", player.String())
 			player.DisplayCards()
+			player.ComputeScore()
+			playersBeforeTurn = append(playersBeforeTurn, player)
 		}
+		game.UpdatePlayers(playersBeforeTurn)
+
 		dealer := game.GetDealer()
 		fmt.Printf("Dealer: %s\n", dealer.String())
 		dealer.DisplayCards()
-
-		playersAfterTurn := make([]BlackJackPlayer, 0)
-		for _, player := range players {
-			player.ExecuteTurn()
-			playersAfterTurn = append(playersAfterTurn, player)
-		}
-		game.UpdatePlayers(playersAfterTurn)
-
-		dealer.ExecuteTurn()
+		dealer.ComputeScore()
 		game.UpdateDealer(dealer)
 
 		var winner BlackJackPlayer
 		var err error
-		if winner, err = game.DecideWinner(); err != nil {
-			fmt.Printf("%s", err.Error())
-		}
+		if winner, err = game.EarlyWinner(); err != nil {
+			playersAfterTurn := make([]BlackJackPlayer, 0)
+			for _, player := range game.GetPlayers() {
+				player.ExecuteTurn()
+				playersAfterTurn = append(playersAfterTurn, player)
+			}
+			game.UpdatePlayers(playersAfterTurn)
 
-		if winner.PType == PlayerType {
-			fmt.Printf("Winner is: %s!\n", winner.String())
+			dealer.ExecuteTurn()
+			game.UpdateDealer(dealer)
+
+			winner = game.EndOfTurnWinner()
+
+			if winner.PType == PlayerType {
+				fmt.Printf("Winner is: %s!\n", winner.String())
+			} else {
+				fmt.Printf("Dealer %s won!\n", winner.String())
+			}
 		} else {
-			fmt.Printf("Dealer %s won!\n", winner.String())
+			fmt.Printf("Winner is: %s!\n", winner.String())
 		}
-
 		game.Reset()
 		fmt.Println()
 	}
-
 }

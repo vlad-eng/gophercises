@@ -80,7 +80,28 @@ func (g *BlackJack) DealCards() error {
 	return nil
 }
 
-func (g *BlackJack) DecideWinner() (BlackJackPlayer, error) {
+func (g *BlackJack) EarlyWinner() (BlackJackPlayer, error) {
+	scores, maxScore := g.computeScores()
+	if maxScore == BlackJackMaxScore {
+		return scores[maxScore], nil
+	} else if g.dealer.Score == BlackJackMaxScore {
+		return scores[g.dealer.Score], nil
+	} else {
+		return BlackJackPlayer{}, fmt.Errorf("no winner yet")
+	}
+}
+
+func (g *BlackJack) EndOfTurnWinner() BlackJackPlayer {
+	scores, maxScore := g.computeScores()
+	if (maxScore < g.dealer.Score && (g.dealer.Score <= BlackJackMaxScore)) ||
+		maxScore > BlackJackMaxScore {
+
+		maxScore = g.dealer.Score
+	}
+	return scores[maxScore]
+}
+
+func (g *BlackJack) computeScores() (map[int]BlackJackPlayer, int) {
 	var maxScore int
 	scores := make(map[int]BlackJackPlayer)
 	for _, player := range g.players {
@@ -91,12 +112,7 @@ func (g *BlackJack) DecideWinner() (BlackJackPlayer, error) {
 		}
 	}
 	scores[g.dealer.Score] = BlackJackPlayer(g.dealer)
-	if (maxScore < g.dealer.Score && (g.dealer.Score <= BlackJackMaxScore)) ||
-		maxScore > BlackJackMaxScore {
-
-		maxScore = g.dealer.Score
-	}
-	return scores[maxScore], nil
+	return scores, maxScore
 }
 
 func (g *BlackJack) DisplayAllCards() {
