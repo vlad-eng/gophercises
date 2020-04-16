@@ -40,26 +40,15 @@ func (p *BlackJackPlayer) dealCard(isVisible bool) (Card, error) {
 	return dealtCard, nil
 }
 
-func (p *BlackJackPlayer) ExecuteTurn() error {
-	scanner := bufio.NewScanner(os.Stdin)
+func (p *BlackJackPlayer) ExecuteTurn() (err error) {
+	toHit := true
 	if p.PType == PlayerType {
-		fmt.Println()
-		fmt.Print(p.Name + ": Hit or Stand: ")
-		scanner.Scan()
-		fmt.Println()
-		var hitCard Card
-		var err error
-		answer := scanner.Text()
-		//answer := "H"
-		toHit := strings.Compare(answer, "H")
-		if toHit == 0 {
-			if hitCard, err = p.dealCard(true); err != nil {
+		for toHit {
+			if toHit, err = p.toHit(); err != nil {
 				return err
 			}
-			p.cards = Add(p.cards, hitCard)
-			p.UpdateScore(hitCard)
+			p.DisplayCards()
 		}
-		p.DisplayCards()
 	} else {
 		//TODO: dealer's turn
 		//first version below:
@@ -67,6 +56,28 @@ func (p *BlackJackPlayer) ExecuteTurn() error {
 		p.DisplayCards()
 	}
 	return nil
+}
+
+func (p *BlackJackPlayer) toHit() (bool, error) {
+	scanner := bufio.NewScanner(os.Stdin)
+	fmt.Println()
+	fmt.Print(p.Name + ": Hit or Stand: ")
+	scanner.Scan()
+	fmt.Println()
+	var hitCard Card
+	var err error
+	answer := scanner.Text()
+	//answer := "H"
+	toHit := strings.Compare(answer, "H")
+	if toHit == 0 {
+		if hitCard, err = p.dealCard(true); err != nil {
+			return false, err
+		}
+		p.cards = Add(p.cards, hitCard)
+		p.UpdateScore(hitCard)
+		return true, nil
+	}
+	return false, nil
 }
 
 func (p *BlackJackPlayer) DisplayCards() {

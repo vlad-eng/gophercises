@@ -61,12 +61,14 @@ func main() {
 			dealer.ExecuteTurn()
 			game.UpdateDealer(dealer)
 
-			winner = game.EndOfTurnWinner()
-
-			if winner.PType == PlayerType {
-				fmt.Printf("Winner is: %s!\n", winner.String())
+			if winner, err = game.EndOfTurnWinner(); err != nil {
+				fmt.Println(err)
 			} else {
-				fmt.Printf("Dealer %s won!\n", winner.String())
+				if winner.PType == PlayerType {
+					fmt.Printf("Winner is: %s!\n", winner.String())
+				} else {
+					fmt.Printf("Dealer %s won!\n", winner.String())
+				}
 			}
 		} else {
 			fmt.Printf("Winner is: %s!\n", winner.String())
