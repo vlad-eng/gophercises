@@ -52,20 +52,20 @@ func (p *BlackJackPlayer) ExecuteTurn() (err error) {
 			}
 			p.cards = Add(p.cards, hitCard)
 			p.UpdateScore(hitCard)
-			p.DisplayCards()
+			p.DisplayCards(true)
 		} else {
 			for toHit {
 				if toHit, err = p.toHit(); err != nil {
 					return err
 				}
-				p.DisplayCards()
+				p.DisplayCards(true)
 			}
 		}
 	} else {
 		//TODO: dealer's turn
 		//first version below:
 		p.cards[1].SetVisible(true)
-		p.DisplayCards()
+		p.DisplayCards(true)
 	}
 	return nil
 }
@@ -112,12 +112,16 @@ func (p *BlackJackPlayer) toHit() (bool, error) {
 	return false, nil
 }
 
-func (p *BlackJackPlayer) DisplayCards() {
+func (p *BlackJackPlayer) DisplayCards(showSecondCard bool) {
 	fmt.Printf(p.Name + ": ")
 	for _, card := range p.cards[:len(p.cards)-1] {
 		fmt.Printf("%s; ", card.String())
 	}
-	fmt.Printf("%s \n", p.cards[len(p.cards)-1].String())
+	if showSecondCard {
+		fmt.Printf("%s \n", p.cards[len(p.cards)-1].String())
+	} else {
+		fmt.Println("Face down card")
+	}
 }
 
 func (p *BlackJackPlayer) String() string {

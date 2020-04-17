@@ -39,7 +39,7 @@ func main() {
 		playersBeforeTurn := make([]BlackJackPlayer, 0)
 		for _, player := range game.GetPlayers() {
 			fmt.Printf("Player: %s\n", player.String())
-			player.DisplayCards()
+			player.DisplayCards(true)
 			player.ComputeScore()
 			playersBeforeTurn = append(playersBeforeTurn, player)
 		}
@@ -47,7 +47,7 @@ func main() {
 
 		dealer := game.GetDealer()
 		fmt.Printf("Dealer: %s\n", dealer.String())
-		dealer.DisplayCards()
+		dealer.DisplayCards(false)
 		dealer.ComputeScore()
 		game.UpdateDealer(dealer)
 

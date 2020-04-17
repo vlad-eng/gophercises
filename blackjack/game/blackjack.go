@@ -132,18 +132,6 @@ func (g *BlackJack) computeScores() (map[int]BlackJackPlayer, int) {
 	return scores, maxScore
 }
 
-func (g *BlackJack) DisplayAllCards() {
-	for _, player := range g.GetPlayers() {
-		fmt.Printf("Player: %s\n", player.String())
-		player.DisplayCards()
-	}
-	fmt.Println("-------------------------")
-	dealer := g.GetDealer()
-	fmt.Printf("Dealer: %s\n", dealer.String())
-	dealer.DisplayCards()
-	fmt.Println("-------------------------")
-}
-
 func (g *BlackJack) AddPlayer(player Player) {
 	game := CardGame(*g)
 	game.addPlayer(player)
