@@ -13,19 +13,19 @@ func main() {
 	game := NewGame(WithShuffling())
 	cardGame := game.GetCardGame()
 	dealer := Player{
-		Id:     1,
-		Name:   "Mr. X",
-		PType:  DealerType,
-		Game:   &cardGame,
-		Amount: 1000,
+		Id:    1,
+		Name:  "Mr. X",
+		PType: DealerType,
+		Game:  &cardGame,
+		Bank:  1000,
 	}
 	game.AddDealer(dealer)
 	player := Player{
-		Id:     2,
-		Name:   "Player A",
-		PType:  PlayerType,
-		Game:   &cardGame,
-		Amount: 1000,
+		Id:    2,
+		Name:  "Player A",
+		PType: PlayerType,
+		Game:  &cardGame,
+		Bank:  1000,
 	}
 	game.AddPlayer(player)
 
@@ -34,9 +34,7 @@ func main() {
 	scanner.Scan()
 	playCount, _ := strconv.Atoi(scanner.Text())
 	for i := 0; i < playCount; i++ {
-		fmt.Println("How much would you like to bet?")
-		scanner.Scan()
-		betAmount, _ := strconv.Atoi(scanner.Text())
+		game.PlaceBets()
 		game.DealCards()
 		playersBeforeTurn := make([]BlackJackPlayer, 0)
 		for _, player := range game.GetPlayers() {
@@ -73,8 +71,8 @@ func main() {
 		}
 
 		if err == nil {
-			winner.UpdateAmount(betAmount)
-			nonWinner.UpdateAmount(-1 * betAmount)
+			winner.WinBankUpdate()
+			nonWinner.LossBankUpdate()
 			fmt.Printf("Winner is: %s!\n", winner.String())
 			if winner.PType == PlayerType {
 				game.UpdatePlayers([]BlackJackPlayer{winner})
@@ -83,9 +81,9 @@ func main() {
 				game.UpdateDealer(winner)
 				game.UpdatePlayers([]BlackJackPlayer{nonWinner})
 			}
+			winner.DisplayAmount()
+			nonWinner.DisplayAmount()
 		}
-		winner.DisplayAmount()
-		nonWinner.DisplayAmount()
 		game.Reset()
 		fmt.Println()
 	}

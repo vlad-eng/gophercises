@@ -55,10 +55,24 @@ func (g *BlackJack) UpdatePlayers(blackJackPlayers []BlackJackPlayer) {
 
 func (g *BlackJack) UpdateDealer(blackJackDealer BlackJackPlayer) {
 	g.dealer = Player(blackJackDealer)
+	for _, player := range g.players {
+		//only works for one player against dealer
+		g.dealer.BetAmount = player.BetAmount
+	}
 }
 
 func (g *BlackJack) GetPlayerCount() int {
 	return len(g.players)
+}
+
+func (g *BlackJack) PlaceBets() {
+	for i, player := range g.players {
+		p := BlackJackPlayer(player)
+		p.placeBet()
+		//only works for one player against dealer
+		g.dealer.BetAmount += p.BetAmount
+		g.players[i] = Player(p)
+	}
 }
 
 func (g *BlackJack) DealCards() error {

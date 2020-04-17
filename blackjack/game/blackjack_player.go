@@ -5,6 +5,7 @@ import (
 	"fmt"
 	. "gophercises/deck/deck"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -41,13 +42,24 @@ func (p *BlackJackPlayer) dealCard(isVisible bool) (Card, error) {
 }
 
 func (p *BlackJackPlayer) ExecuteTurn() (err error) {
-	toHit := true
 	if p.PType == PlayerType {
-		for toHit {
-			if toHit, err = p.toHit(); err != nil {
+		isDoubleDown := p.doubleDown()
+		toHit := true
+		var hitCard Card
+		if isDoubleDown {
+			if hitCard, err = p.dealCard(true); err != nil {
 				return err
 			}
+			p.cards = Add(p.cards, hitCard)
+			p.UpdateScore(hitCard)
 			p.DisplayCards()
+		} else {
+			for toHit {
+				if toHit, err = p.toHit(); err != nil {
+					return err
+				}
+				p.DisplayCards()
+			}
 		}
 	} else {
 		//TODO: dealer's turn
@@ -58,17 +70,37 @@ func (p *BlackJackPlayer) ExecuteTurn() (err error) {
 	return nil
 }
 
+func (p *BlackJackPlayer) doubleDown() bool {
+	fmt.Println("Double down? ")
+	scanner := bufio.NewScanner(os.Stdin)
+	scanner.Scan()
+	answer := scanner.Text()
+	isDoubleDown := false
+	if strings.Compare(answer, "y") == 0 {
+		p.BetAmount *= 2
+		isDoubleDown = true
+	}
+	return isDoubleDown
+}
+
+func (p *BlackJackPlayer) placeBet() {
+	scanner := bufio.NewScanner(os.Stdin)
+	fmt.Println(p.Name + ": How much would you like to bet?")
+	scanner.Scan()
+	p.BetAmount, _ = strconv.Atoi(scanner.Text())
+	p.BetAmount = 10
+}
+
 func (p *BlackJackPlayer) toHit() (bool, error) {
 	scanner := bufio.NewScanner(os.Stdin)
 	fmt.Println()
-	fmt.Print(p.Name + ": Hit or Stand: ")
+	fmt.Print(p.Name + ": Do you want to hit? ")
 	scanner.Scan()
 	fmt.Println()
 	var hitCard Card
 	var err error
 	answer := scanner.Text()
-	//answer := "H"
-	toHit := strings.Compare(answer, "H")
+	toHit := strings.Compare(answer, "y")
 	if toHit == 0 {
 		if hitCard, err = p.dealCard(true); err != nil {
 			return false, err
@@ -154,10 +186,16 @@ func (p *BlackJackPlayer) hasOneAce() (bool, bool) {
 	return hasDealtAce, hasHitAce
 }
 
-func (p *BlackJackPlayer) UpdateAmount(gainedAmount int) {
-	p.Amount += gainedAmount
+func (p *BlackJackPlayer) WinBankUpdate() {
+	p.Bank += p.BetAmount
+	p.BetAmount = 0
+}
+
+func (p *BlackJackPlayer) LossBankUpdate() {
+	p.Bank -= p.BetAmount
+	p.BetAmount = 0
 }
 
 func (p *BlackJackPlayer) DisplayAmount() {
-	fmt.Printf("%s current amount: %d\n", p.Name, p.Amount)
+	fmt.Printf("%s current amount: %d\n", p.Name, p.Bank)
 }

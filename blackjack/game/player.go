@@ -12,13 +12,14 @@ const (
 )
 
 type Player struct {
-	Id     int
-	Name   string
-	cards  []Card
-	PType  ParticipantType
-	Game   *CardGame
-	Score  int
-	Amount int
+	Id        int
+	Name      string
+	cards     []Card
+	PType     ParticipantType
+	Game      *CardGame
+	Score     int
+	Bank      int
+	BetAmount int
 }
 
 func (p *Player) String() string {
