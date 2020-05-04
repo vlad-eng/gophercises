@@ -62,9 +62,19 @@ func (p *BlackJackPlayer) ExecuteTurn() (err error) {
 			}
 		}
 	} else {
-		//TODO: dealer's turn
-		//first version below:
-		p.cards[1].SetVisible(true)
+		var hitCard Card
+		for p.Score < 17 {
+			if hitCard, err = p.dealCard(true); err != nil {
+				return err
+			}
+			p.cards = Add(p.cards, hitCard)
+			p.UpdateScore(hitCard)
+		}
+
+		for i := range p.cards {
+			p.cards[i].SetVisible(true)
+		}
+
 		p.DisplayCards(true)
 	}
 	return nil
