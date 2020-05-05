@@ -7,8 +7,9 @@ import (
 type ParticipantType int
 
 const (
-	DealerType ParticipantType = iota
-	PlayerType
+	Dealer ParticipantType = iota
+	Human
+	AI
 )
 
 type Player struct {

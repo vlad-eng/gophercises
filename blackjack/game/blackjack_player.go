@@ -4,9 +4,11 @@ import (
 	"bufio"
 	"fmt"
 	. "gophercises/deck/deck"
+	"math/rand"
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type BlackJackPlayer Player
@@ -42,7 +44,7 @@ func (p *BlackJackPlayer) dealCard(isVisible bool) (Card, error) {
 }
 
 func (p *BlackJackPlayer) ExecuteTurn() (err error) {
-	if p.PType == PlayerType {
+	if p.PType == Human || p.PType == AI {
 		isDoubleDown := p.doubleDown()
 		toHit := true
 		var hitCard Card
@@ -80,11 +82,60 @@ func (p *BlackJackPlayer) ExecuteTurn() (err error) {
 	return nil
 }
 
-func (p *BlackJackPlayer) doubleDown() bool {
-	fmt.Println("Double down? ")
+func (p *BlackJackPlayer) userInput(question string) string {
+	fmt.Println()
+	fmt.Println(question)
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Scan()
-	answer := scanner.Text()
+	return scanner.Text()
+}
+
+func (p *BlackJackPlayer) aiInput(question string) string {
+	if strings.Contains(question, "Double down? ") {
+		if p.Score >= 10 && p.Score <= 11 {
+			return p.probabilisticAnswer(0.9)
+		} else if p.Score == 9 {
+			return p.probabilisticAnswer(0.4)
+		} else {
+			return "n"
+		}
+	} else if strings.Contains(question, ": How much would you like to bet?") {
+		r := rand.New(rand.NewSource(time.Now().Unix()))
+		return string(r.Intn(MaxPossibleBetAmount))
+	} else if strings.Contains(question, ": Do you want to hit? ") {
+		if p.Score <= 11 {
+			return "y"
+		} else if p.Score >= 12 && p.Score <= 16 {
+			dealerShownValue := p.Game.dealer.cards[0].GetValue()
+			if dealerShownValue <= 6 {
+				return "n"
+			} else {
+				return "y"
+			}
+		} else {
+			return "n"
+		}
+	}
+	panic("Unknown question")
+}
+
+func (p *BlackJackPlayer) probabilisticAnswer(probabilityForYes float32) string {
+	r := rand.New(rand.NewSource(time.Now().Unix()))
+	randValue := r.Float32()
+	if randValue <= probabilityForYes {
+		return "y"
+	} else {
+		return "n"
+	}
+}
+
+func (p *BlackJackPlayer) doubleDown() bool {
+	var answer string
+	if p.PType == Human {
+		answer = p.userInput("Double down? ")
+	} else {
+		answer = p.aiInput("Double down? ")
+	}
 	isDoubleDown := false
 	if strings.Compare(answer, "y") == 0 {
 		p.BetAmount *= 2
@@ -94,22 +145,27 @@ func (p *BlackJackPlayer) doubleDown() bool {
 }
 
 func (p *BlackJackPlayer) placeBet() {
-	scanner := bufio.NewScanner(os.Stdin)
-	fmt.Println(p.Name + ": How much would you like to bet?")
-	scanner.Scan()
-	p.BetAmount, _ = strconv.Atoi(scanner.Text())
+	var answer string
+	if p.PType == Human {
+		answer = p.userInput(p.Name + ": How much would you like to bet?")
+	} else {
+		answer = p.aiInput(p.Name + ": How much would you like to bet?")
+	}
+
+	p.BetAmount, _ = strconv.Atoi(answer)
 	p.BetAmount = 10
 }
 
 func (p *BlackJackPlayer) toHit() (bool, error) {
-	scanner := bufio.NewScanner(os.Stdin)
-	fmt.Println()
-	fmt.Print(p.Name + ": Do you want to hit? ")
-	scanner.Scan()
-	fmt.Println()
+	var answer string
+	if p.PType == Human {
+		answer = p.userInput(p.Name + ": Do you want to hit? ")
+	} else {
+		answer = p.aiInput(p.Name + ": Do you want to hit? ")
+	}
+
 	var hitCard Card
 	var err error
-	answer := scanner.Text()
 	toHit := strings.Compare(answer, "y")
 	if toHit == 0 {
 		if hitCard, err = p.dealCard(true); err != nil {
@@ -165,7 +221,7 @@ func (p *BlackJackPlayer) UpdateScore(card Card) {
 
 func (p *BlackJackPlayer) getCardVisibility() []bool {
 	var cardsVisibility []bool
-	if p.PType == PlayerType {
+	if p.PType == Human || p.PType == AI {
 		cardsVisibility = []bool{true, true}
 	} else {
 		cardsVisibility = []bool{true, false}

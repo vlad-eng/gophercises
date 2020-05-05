@@ -26,7 +26,7 @@ func (s *BlackjackTestSuite) Test_FirstPlayerIsDealt() {
 		Id:    1234,
 		Name:  "Dealer_1",
 		cards: []Card{},
-		PType: DealerType,
+		PType: Dealer,
 		Game:  &blackJackGame,
 	}
 

@@ -1,16 +1,14 @@
 package game
 
 import (
-	"bufio"
 	"fmt"
 	. "gophercises/deck/deck"
-	"os"
-	"strconv"
 )
 
 const DealtCardsCount = 2
 const FaceCardValue = 10
 const BlackJackMaxScore = 21
+const MaxPossibleBetAmount = 100
 
 type CardGame struct {
 	dealer  Player
@@ -28,29 +26,7 @@ func NewGame(gameOptions ...func([]Card) []Card) *BlackJack {
 	return &game
 }
 
-func (g *BlackJack) Play() {
-	cardGame := g.GetCardGame()
-	dealer := Player{
-		Id:    1,
-		Name:  "Mr. X",
-		PType: DealerType,
-		Game:  &cardGame,
-		Bank:  1000,
-	}
-	g.AddDealer(dealer)
-	player := Player{
-		Id:    2,
-		Name:  "Player A",
-		PType: PlayerType,
-		Game:  &cardGame,
-		Bank:  1000,
-	}
-	g.AddPlayer(player)
-
-	fmt.Println("How many times would you like to play? ")
-	scanner := bufio.NewScanner(os.Stdin)
-	scanner.Scan()
-	playCount, _ := strconv.Atoi(scanner.Text())
+func (g *BlackJack) Play(playCount int) {
 	for i := 0; i < playCount; i++ {
 		g.PlaceBets()
 		g.DealCards()
@@ -61,13 +37,13 @@ func (g *BlackJack) Play() {
 			player.ComputeScore()
 			playersBeforeTurn = append(playersBeforeTurn, player)
 		}
-		g.UpdatePlayers(playersBeforeTurn)
 
 		dealer := g.GetDealer()
 		fmt.Printf("Dealer: %s\n", dealer.String())
 		dealer.DisplayCards(false)
 		dealer.ComputeScore()
 		g.UpdateDealer(dealer)
+		g.UpdatePlayers(playersBeforeTurn)
 
 		var winner BlackJackPlayer
 		var nonWinner BlackJackPlayer
@@ -78,10 +54,10 @@ func (g *BlackJack) Play() {
 				player.ExecuteTurn()
 				playersAfterTurn = append(playersAfterTurn, player)
 			}
-			g.UpdatePlayers(playersAfterTurn)
 
 			dealer.ExecuteTurn()
 			g.UpdateDealer(dealer)
+			g.UpdatePlayers(playersAfterTurn)
 
 			if winner, nonWinner, err = g.EndOfTurnOutcome(); err != nil {
 				fmt.Println(err)
@@ -92,7 +68,7 @@ func (g *BlackJack) Play() {
 			winner.WinBankUpdate()
 			nonWinner.LossBankUpdate()
 			fmt.Printf("Winner is: %s!\n", winner.String())
-			if winner.PType == PlayerType {
+			if winner.PType == Human || winner.PType == AI {
 				g.UpdatePlayers([]BlackJackPlayer{winner})
 				g.UpdateDealer(nonWinner)
 			} else {
@@ -132,6 +108,10 @@ func (g *BlackJack) GetPlayer(playerIndex int) *BlackJackPlayer {
 func (g *BlackJack) UpdatePlayers(blackJackPlayers []BlackJackPlayer) {
 	for i := range g.players {
 		g.players[i] = Player(blackJackPlayers[i])
+	}
+	cardGame := CardGame(*g)
+	for i := range g.players {
+		g.players[i].Game.dealer = cardGame.dealer
 	}
 }
 
